@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>VanBerto's — Palavras Cruzadas da UE 🇪🇺</title>
+<link href="https://fonts.googleapis.com/css2?family=Boogaloo&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{--bg:#05091a;--gold:#FFD600;--cell:42px;}
+html,body{width:100%;min-height:100%;background:var(--bg);font-family:'Nunito',sans-serif;color:#fff;overflow-x:hidden;}
+
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse at 20% 20%,rgba(21,101,255,0.20),transparent 55%),
+    radial-gradient(ellipse at 80% 80%,rgba(0,150,136,0.15),transparent 55%),
+    linear-gradient(160deg,#02040f,#060a1e,#080520);}
+body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:
+    radial-gradient(1.5px 1.5px at 10% 20%,rgba(255,255,255,.7),transparent),
+    radial-gradient(1px 1px at 30% 60%,rgba(255,255,200,.5),transparent),
+    radial-gradient(2px 2px at 55% 10%,rgba(255,255,255,.6),transparent),
+    radial-gradient(1px 1px at 78% 38%,rgba(200,220,255,.6),transparent),
+    radial-gradient(1px 1px at 18% 82%,rgba(220,200,255,.5),transparent);
+  animation:twk 4s ease-in-out infinite alternate;}
+@keyframes twk{0%{opacity:.4;}100%{opacity:1;}}
+
+#app{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;
+  padding:12px 10px 30px;gap:14px;min-height:100vh;}
+
+/* HEADER */
+header{width:100%;max-width:900px;display:flex;align-items:center;justify-content:space-between;
+  background:linear-gradient(180deg,rgba(5,5,20,.98),rgba(10,10,28,.95));
+  border:1px solid rgba(255,214,0,.18);border-radius:18px;
+  padding:10px 16px;backdrop-filter:blur(14px);
+  box-shadow:0 4px 24px rgba(0,0,0,.5);}
+.htitle{font-family:'Boogaloo',cursive;font-size:clamp(15px,4vw,22px);color:var(--gold);}
+.hinfo{display:flex;gap:8px;align-items:center;}
+#timer{font-family:'Boogaloo',cursive;font-size:clamp(13px,3.5vw,18px);color:#fff;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
+  border-radius:10px;padding:4px 12px;}
+#score{font-family:'Boogaloo',cursive;font-size:clamp(12px,3vw,16px);color:var(--gold);}
+.hbtn{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
+  color:#fff;border-radius:9px;width:34px;height:34px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:15px;
+  touch-action:manipulation;transition:all .15s;}
+.hbtn:active{transform:scale(.88);}
+
+/* LAYOUT */
+#mainArea{width:100%;max-width:900px;display:flex;flex-direction:column;gap:14px;}
+@media(min-width:700px){
+  #mainArea{flex-direction:row;align-items:flex-start;}
+  #gridWrap{flex:1;min-width:0;}
+  #cluesPanel{width:220px;flex-shrink:0;}
+}
+
+/* GRID WRAPPER — escala automaticamente para caber no ecrã */
+#gridWrap{
+  background:rgba(14,18,50,.97);border:2px solid rgba(255,214,0,.20);
+  border-radius:20px;padding:14px;
+  box-shadow:0 12px 48px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06);
+  overflow:visible;
+  /* impede que o wrapper cresça além do disponível */
+  max-width:100%;
+}
+/* Contentor que aplica a escala */
+#gridScaler{
+  display:inline-block;
+  transform-origin:top left;
+  /* escala é definida via JS */
+}
+#cwGrid{display:inline-grid;gap:3px;position:relative;}
+.cw-cell{
+  width:var(--cell);height:var(--cell);position:relative;
+  border-radius:5px;overflow:hidden;}
+.cw-cell.black{background:rgba(10,12,30,.6);border-radius:4px;}
+.cw-cell.white{background:#ffffff;border:2px solid #b0b8cc;cursor:pointer;
+  box-shadow:inset 0 -2px 0 rgba(0,0,0,.15);transition:transform .15s,border-color .2s,background .2s;}
+.cw-cell.white.active{background:#fff9c4;border-color:#f9a825;}
+.cw-cell.white.word-active{background:#dbeafe;border-color:#3b82f6;}
+.cw-cell.white.correct{background:#d1fae5;border-color:#10b981;}
+.cw-cell.white.cell-pop{animation:cellPop .35s ease;}
+@keyframes cellPop{
+  0%{transform:scale(1);}
+  40%{transform:scale(1.18);box-shadow:0 0 12px rgba(16,185,129,.6);}
+  100%{transform:scale(1);}
+}
+.cw-cell.white.wrong-flash{animation:wrongShake .4s ease;}
+@keyframes wrongShake{
+  0%,100%{transform:translateX(0);background:#fff;}
+  20%{transform:translateX(-3px);background:#fee2e2;}
+  40%{transform:translateX(3px);background:#fecaca;}
+  60%{transform:translateX(-2px);background:#fee2e2;}
+  80%{transform:translateX(2px);background:#fff;}
+}
+.cw-cell input{
+  position:absolute;inset:0;width:100%;height:100%;
+  background:transparent;border:none;outline:none;
+  font-family:'Boogaloo',cursive;font-size:20px;
+  font-weight:900;text-align:center;text-transform:uppercase;
+  color:#1e293b;caret-color:transparent;cursor:pointer;
+  padding-top:8px;
+  -webkit-user-select:none;}
+.cw-num{position:absolute;top:2px;left:3px;font-size:9px;
+  font-family:'Boogaloo',cursive;color:#64748b;line-height:1;z-index:2;pointer-events:none;}
+
+/* CLUES */
+#cluesPanel{background:rgba(14,18,50,.97);border:2px solid rgba(255,214,0,.18);
+  border-radius:20px;padding:14px;
+  box-shadow:0 8px 32px rgba(0,0,0,.4);max-height:75vh;overflow-y:auto;
+  scrollbar-width:thin;scrollbar-color:rgba(255,214,0,.3) transparent;}
+#cluesPanel::-webkit-scrollbar{width:4px;}
+#cluesPanel::-webkit-scrollbar-thumb{background:rgba(255,214,0,.3);border-radius:2px;}
+.clue-section h3{font-family:'Boogaloo',cursive;color:var(--gold);
+  font-size:clamp(13px,3.5vw,16px);margin-bottom:8px;letter-spacing:.5px;}
+.clue-item{display:flex;gap:8px;align-items:flex-start;
+  padding:5px 8px;border-radius:10px;cursor:pointer;
+  transition:background .15s;margin-bottom:3px;}
+.clue-item:hover,.clue-item.active{background:rgba(21,101,255,.20);}
+.clue-item.correct{opacity:.5;}
+.clue-num{font-family:'Boogaloo',cursive;color:var(--gold);font-size:13px;
+  min-width:22px;flex-shrink:0;}
+.clue-txt{font-family:'Nunito',sans-serif;font-size:clamp(11px,2.8vw,13px);
+  color:rgba(255,255,255,.75);line-height:1.4;}
+.clue-txt.correct{text-decoration:line-through;color:rgba(0,200,83,.7);}
+
+/* ACTIVE CLUE BANNER */
+#activeClueBanner{width:100%;max-width:900px;
+  background:linear-gradient(135deg,rgba(21,101,255,.14),rgba(124,58,237,.10));
+  border:1.5px solid rgba(21,101,255,.35);
+  border-radius:16px;padding:10px 14px;
+  display:none;line-height:1.4;
+  box-shadow:0 4px 18px rgba(0,0,0,.2);}
+#activeClueBanner .clue-dir{
+  display:inline-block;font-family:'Boogaloo',cursive;
+  font-size:clamp(10px,2.5vw,12px);
+  padding:3px 10px;border-radius:20px;margin-right:6px;
+  font-weight:700;letter-spacing:.5px;vertical-align:middle;}
+#activeClueBanner .clue-dir.across{background:rgba(21,101,255,.30);color:#93c5fd;}
+#activeClueBanner .clue-dir.down{background:rgba(124,58,237,.30);color:#c4b5fd;}
+#activeClueBanner .clue-main{
+  font-family:'Boogaloo',cursive;font-size:clamp(13px,3.5vw,16px);color:#fff;}
+#activeClueBanner .clue-main span{color:var(--gold);}
+#activeClueBanner .word-pattern{
+  display:flex;gap:3px;margin-top:7px;flex-wrap:wrap;}
+#activeClueBanner .wp-cell{
+  width:clamp(22px,5vw,28px);height:clamp(22px,5vw,28px);
+  border-radius:5px;display:flex;align-items:center;justify-content:center;
+  font-family:'Boogaloo',cursive;font-size:clamp(12px,3vw,16px);
+  font-weight:900;text-transform:uppercase;line-height:1;}
+#activeClueBanner .wp-cell.filled{
+  background:rgba(16,185,129,.25);border:1.5px solid rgba(16,185,129,.5);color:#6ee7b7;}
+#activeClueBanner .wp-cell.empty{
+  background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.15);color:rgba(255,255,255,.25);}
+#activeClueBanner .wp-cell.current{
+  background:rgba(255,214,0,.15);border:1.5px solid rgba(255,214,0,.5);color:var(--gold);}
+
+/* MODAL */
+.movl{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;}
+.mbg{position:absolute;inset:0;background:rgba(2,2,14,.92);backdrop-filter:blur(12px);}
+.mcard{position:relative;z-index:1;
+  background:linear-gradient(155deg,rgba(14,14,40,.98),rgba(6,6,20,.98));
+  border:2px solid rgba(255,214,0,.30);border-radius:26px;
+  padding:clamp(20px,5vw,34px) clamp(22px,6vw,42px);
+  text-align:center;width:min(440px,96%);
+  box-shadow:0 0 90px rgba(21,101,255,.12),0 24px 64px rgba(0,0,0,.65);}
+.mcard h2{font-family:'Boogaloo',cursive;color:var(--gold);font-size:clamp(24px,7vw,38px);
+  margin-bottom:8px;}
+.mcard p{color:rgba(255,255,255,.60);font-size:clamp(12px,3vw,15px);line-height:1.75;margin-bottom:12px;}
+.mscore{font-family:'Boogaloo',cursive;font-size:clamp(44px,12vw,64px);
+  color:var(--gold);text-shadow:0 0 34px rgba(255,214,0,.7);line-height:1;}
+.bplay{font-family:'Boogaloo',cursive;
+  background:linear-gradient(135deg,#1565ff,#7c3aed);
+  border:none;color:#fff;font-size:clamp(16px,4.5vw,21px);
+  padding:12px 40px;border-radius:50px;cursor:pointer;
+  box-shadow:0 6px 28px rgba(21,101,255,.45);
+  margin-top:12px;transition:transform .1s;touch-action:manipulation;}
+.bplay:active{transform:scale(.96);}
+.bsec{font-family:'Boogaloo',cursive;background:rgba(255,255,255,.06);
+  border:1.5px solid rgba(255,255,255,.14);color:rgba(255,255,255,.6);
+  font-size:clamp(13px,3.5vw,16px);padding:9px 24px;border-radius:50px;
+  cursor:pointer;margin-top:8px;display:inline-block;touch-action:manipulation;}
+.diff-row{display:flex;gap:8px;justify-content:center;margin-bottom:14px;flex-wrap:wrap;}
+.dbtn{font-family:'Boogaloo',cursive;font-size:clamp(11px,2.8vw,13px);
+  padding:8px 14px;border-radius:18px;border:2px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.05);color:rgba(255,255,255,.5);cursor:pointer;
+  transition:all .2s;line-height:1.3;touch-action:manipulation;}
+.dbtn.on{border-color:var(--gold);color:var(--gold);background:rgba(255,214,0,.10);}
+.credit{color:rgba(255,255,255,.18);font-size:10px;margin-top:14px;font-family:'Boogaloo',cursive;}
+
+/* HINT & ERASER BTNS */
+.hbtn .badge{position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;
+  font-size:9px;font-family:'Nunito',sans-serif;font-weight:900;
+  min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;
+  justify-content:center;line-height:1;padding:0 3px;}
+.hbtn{position:relative;}
+
+/* CONFETTI CANVAS */
+#confettiCanvas{position:fixed;inset:0;z-index:60;pointer-events:none;}
+
+/* STARS */
+.stars-row{display:flex;gap:6px;justify-content:center;margin:10px 0 4px;}
+.star{font-size:clamp(28px,8vw,42px);opacity:.2;transition:all .4s;filter:grayscale(1);}
+.star.earned{opacity:1;filter:grayscale(0);animation:starPop .5s ease backwards;}
+.star:nth-child(2).earned{animation-delay:.15s;}
+.star:nth-child(3).earned{animation-delay:.3s;}
+@keyframes starPop{0%{transform:scale(0) rotate(-30deg);opacity:0;}
+  60%{transform:scale(1.3) rotate(5deg);}100%{transform:scale(1) rotate(0);opacity:1;}}
+
+@keyframes vbf{0%,100%{transform:translateY(0);}50%{transform:translateY(-7px);}}
+@keyframes vbBlink{0%,92%,100%{transform:scaleY(0);}95%{transform:scaleY(1);}}
+@keyframes waveVB{0%{transform:rotate(0deg);}25%{transform:rotate(-18deg);}50%{transform:rotate(0deg);}75%{transform:rotate(-18deg);}100%{transform:rotate(0deg);}}
+@keyframes vbd{0%{transform:translateY(0);}15%{transform:translateY(-16px) rotate(-12deg);}30%{transform:translateY(0);}45%{transform:translateY(-16px) rotate(12deg);}60%{transform:translateY(0);}100%{transform:translateY(0);}}
+
+/* VANBERTO COMPANION */
+#vbCompanion{
+  width:100%;max-width:900px;
+  display:flex;align-items:flex-start;gap:6px;
+  padding:0 4px;
+}
+#vbChar{
+  width:64px;flex-shrink:0;
+  animation:vbIdle 3s ease-in-out infinite;
+  filter:drop-shadow(0 3px 12px rgba(56,189,248,.35));
+  transition:transform .3s;
+}
+@keyframes vbIdle{0%,100%{transform:translateY(0);}50%{transform:translateY(-5px);}}
+@keyframes vbCelebrate{
+  0%{transform:translateY(0) rotate(0);}
+  20%{transform:translateY(-14px) rotate(-8deg);}
+  40%{transform:translateY(0) rotate(8deg);}
+  60%{transform:translateY(-10px) rotate(-5deg);}
+  80%{transform:translateY(0) rotate(3deg);}
+  100%{transform:translateY(0) rotate(0);}
+}
+@keyframes vbWaveHand{
+  0%,100%{transform:rotate(0);}
+  25%{transform:rotate(-25deg);}
+  50%{transform:rotate(0);}
+  75%{transform:rotate(-25deg);}
+}
+#vbBubble{
+  background:linear-gradient(145deg,rgba(6,10,30,.94),rgba(12,16,42,.92));
+  border:1.5px solid rgba(255,215,0,.40);
+  border-radius:18px;
+  padding:10px 16px;
+  font-family:'Boogaloo',cursive;
+  color:#FFD600;
+  font-size:clamp(12px,3vw,14px);
+  line-height:1.5;
+  position:relative;
+  max-width:360px;
+  margin-top:6px;
+  box-shadow:0 4px 24px rgba(0,0,0,.35),0 0 18px rgba(255,214,0,.08),inset 0 1px 0 rgba(255,255,255,.05);
+  animation:bubblePop .35s ease-out;
+}
+@keyframes bubblePop{0%{transform:scale(.85);opacity:0;}100%{transform:scale(1);opacity:1;}}
+/* Seta a apontar para a cara do robô (esquerda, perto do topo) */
+#vbBubble::before{
+  content:'';position:absolute;
+  left:-11px;top:14px;
+  width:0;height:0;
+  border-top:7px solid transparent;
+  border-bottom:7px solid transparent;
+  border-right:11px solid rgba(255,215,0,.40);
+}
+#vbBubble::after{
+  content:'';position:absolute;
+  left:-8px;top:15px;
+  width:0;height:0;
+  border-top:6px solid transparent;
+  border-bottom:6px solid transparent;
+  border-right:9px solid rgba(8,12,34,.94);
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <span class="htitle">🇪🇺 VanBerto's — Palavras Cruzadas</span>
+    <div class="hinfo">
+      <span id="score">0/0 ✅</span>
+      <span id="timer">00:00</span>
+      <button class="hbtn" id="btnHint" onclick="useHint()" title="Dica">💡<span class="badge" id="hintBadge">3</span></button>
+      <button class="hbtn" id="btnErase" onclick="eraseCell()" title="Apagar">⌫</button>
+      <button class="hbtn" id="btnSnd" onclick="sndOn=!sndOn;this.textContent=sndOn?'🔊':'🔇'">🔊</button>
+      <button class="hbtn" onclick="showStart()">🏠</button>
+    </div>
+  </header>
+
+  <div id="activeClueBanner"></div>
+
+  <canvas id="confettiCanvas"></canvas>
+
+  <!-- VANBERTO COMPANION -->
+  <div id="vbCompanion" style="display:none;">
+    <div id="vbChar">
+      <svg viewBox="0 0 80 90" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="vbgC" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#e5f2ff"/><stop offset="100%" stop-color="#bfdbfe"/></linearGradient>
+          <linearGradient id="vvgC" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#22d3ee"/><stop offset="100%" stop-color="#38bdf8"/></linearGradient>
+        </defs>
+        <circle cx="40" cy="40" r="34" fill="rgba(147,197,253,0.22)"/>
+        <rect x="18" y="30" width="44" height="32" rx="14" fill="url(#vbgC)"/>
+        <circle cx="40" cy="46" r="7" fill="#9ca3af"/>
+        <rect x="22" y="10" width="36" height="26" rx="13" fill="url(#vbgC)"/>
+        <rect x="26" y="15" width="28" height="16" rx="8" fill="url(#vvgC)"/>
+        <rect x="26" y="15" width="28" height="16" rx="8" fill="#e5f2ff" opacity="0.9" style="transform-origin:40px 23px;animation:vbBlink 5s ease-in-out infinite;"/>
+        <circle cx="33" cy="23" r="2.5" fill="#0f172a"/><circle cx="47" cy="23" r="2.5" fill="#0f172a"/>
+        <path id="vbMouth" d="M33,28 Q40,34 47,28" stroke="#0f172a" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+        <line x1="40" y1="10" x2="40" y2="4" stroke="#38bdf8" stroke-width="2"/>
+        <circle cx="40" cy="3" r="2.5" fill="#38bdf8"/>
+        <rect x="12" y="34" width="6" height="20" rx="3" fill="#e5e7eb"/>
+        <rect id="vbWaveArm" x="62" y="34" width="6" height="20" rx="3" fill="#e5e7eb" style="transform-origin:65px 34px;"/>
+        <rect x="22" y="58" width="12" height="8" rx="3" fill="#1f2937"/>
+        <rect x="46" y="58" width="12" height="8" rx="3" fill="#1f2937"/>
+        <g id="vbStars" style="opacity:0;transition:opacity .3s;">
+          <text x="4" y="14" font-size="10" fill="#FFD600">⭐</text>
+          <text x="68" y="10" font-size="8" fill="#FFD600">✨</text>
+          <text x="10" y="70" font-size="9" fill="#FFD600">✨</text>
+          <text x="64" y="68" font-size="10" fill="#FFD600">⭐</text>
+        </g>
+      </svg>
+    </div>
+    <div id="vbBubble">
+      <span id="vbBubbleText">Vamos lá! Escolhe uma palavra para começar! 🤩</span>
+    </div>
+  </div>
+
+  <div id="mainArea">
+    <div id="gridWrap"><div id="gridScaler"><div id="cwGrid"></div></div></div>
+    <div id="cluesPanel">
+      <div class="clue-section" id="acrossSection">
+        <h3>➡️ Horizontal</h3>
+        <div id="acrossClues"></div>
+      </div>
+      <div class="clue-section" style="margin-top:14px;" id="downSection">
+        <h3>⬇️ Vertical</h3>
+        <div id="downClues"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL INÍCIO -->
+<div class="movl" id="startMod">
+  <div class="mbg"></div>
+  <div class="mcard">
+    <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;">
+      <div style="width:54px;animation:vbf 3s ease-in-out infinite;filter:drop-shadow(0 3px 10px rgba(56,189,248,.35));">
+        <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="vbgS" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#e5f2ff"/><stop offset="100%" stop-color="#bfdbfe"/></linearGradient>
+            <linearGradient id="vvgS" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#22d3ee"/><stop offset="100%" stop-color="#38bdf8"/></linearGradient>
+          </defs>
+          <circle cx="40" cy="40" r="34" fill="rgba(147,197,253,0.22)"/>
+          <rect x="18" y="30" width="44" height="32" rx="14" fill="url(#vbgS)"/>
+          <circle cx="40" cy="46" r="7" fill="#9ca3af"/>
+          <rect x="22" y="10" width="36" height="26" rx="13" fill="url(#vbgS)"/>
+          <rect x="26" y="15" width="28" height="16" rx="8" fill="url(#vvgS)"/>
+          <rect x="26" y="15" width="28" height="16" rx="8" fill="#e5f2ff" opacity="0.9" style="transform-origin:40px 23px;animation:vbBlink 5s ease-in-out infinite;"/>
+          <circle cx="33" cy="23" r="2.5" fill="#0f172a"/><circle cx="47" cy="23" r="2.5" fill="#0f172a"/>
+          <line x1="40" y1="10" x2="40" y2="4" stroke="#38bdf8" stroke-width="2"/>
+          <circle cx="40" cy="3" r="2.5" fill="#38bdf8"/>
+          <rect x="12" y="34" width="6" height="20" rx="3" fill="#e5e7eb"/>
+          <rect x="62" y="34" width="6" height="20" rx="3" fill="#e5e7eb" style="transform-origin:65px 44px;animation:waveVB 1.5s ease-in-out infinite;"/>
+          <rect x="22" y="58" width="12" height="8" rx="3" fill="#1f2937"/>
+          <rect x="46" y="58" width="12" height="8" rx="3" fill="#1f2937"/>
+        </svg>
+      </div>
+      <div style="background:rgba(6,10,30,.90);border:1.5px solid rgba(255,215,0,.38);border-radius:14px;padding:8px 12px;font-family:'Boogaloo',cursive;color:#FFD600;font-size:13px;max-width:180px;line-height:1.45;">
+        Olá! Sou o VanBerto's<br>Completa as palavras<br>cruzadas da UE!
+      </div>
+    </div>
+    <h2>VanBerto's — Palavras Cruzadas</h2>
+    <p>Preenche as palavras cruzadas<br>com os países da União Europeia!<br>Usa as pistas para te ajudar.</p>
+    <div class="diff-row">
+      <button class="dbtn on" id="d1" onclick="setDiff(1)">😊 Fácil<br><small>8 palavras</small></button>
+      <button class="dbtn" id="d2" onclick="setDiff(2)">⚡ Normal<br><small>13 palavras</small></button>
+      <button class="dbtn" id="d3" onclick="setDiff(3)">🔥 Difícil<br><small>18 palavras</small></button>
+    </div>
+    <button class="bplay" onclick="startGame()">✏️ Jogar!</button>
+    <p class="credit">Professora: Vanda Várzea</p>
+  </div>
+</div>
+
+<!-- MODAL FIM -->
+<div class="movl" id="endMod" style="display:none;">
+  <div class="mbg"></div>
+  <div class="mcard">
+    <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px;">
+      <div id="endVb" style="width:54px;filter:drop-shadow(0 3px 10px rgba(56,189,248,.35));animation:vbd .85s ease infinite;">
+        <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="vbgE" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#e5f2ff"/><stop offset="100%" stop-color="#bfdbfe"/></linearGradient>
+            <linearGradient id="vvgE" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#22d3ee"/><stop offset="100%" stop-color="#38bdf8"/></linearGradient>
+          </defs>
+          <circle cx="40" cy="40" r="34" fill="rgba(147,197,253,0.22)"/>
+          <rect x="18" y="30" width="44" height="32" rx="14" fill="url(#vbgE)"/>
+          <circle cx="40" cy="46" r="7" fill="#9ca3af"/>
+          <rect x="22" y="10" width="36" height="26" rx="13" fill="url(#vbgE)"/>
+          <rect x="26" y="15" width="28" height="16" rx="8" fill="url(#vvgE)"/>
+          <rect x="26" y="15" width="28" height="16" rx="8" fill="#e5f2ff" opacity="0.9" style="transform-origin:40px 23px;animation:vbBlink 5s ease-in-out infinite;"/>
+          <circle cx="33" cy="23" r="2.5" fill="#0f172a"/><circle cx="47" cy="23" r="2.5" fill="#0f172a"/>
+          <line x1="40" y1="10" x2="40" y2="4" stroke="#38bdf8" stroke-width="2"/>
+          <circle cx="40" cy="3" r="2.5" fill="#38bdf8"/>
+          <rect x="12" y="34" width="6" height="20" rx="3" fill="#e5e7eb"/>
+          <rect x="62" y="34" width="6" height="20" rx="3" fill="#e5e7eb" style="transform-origin:65px 44px;animation:waveVB 1.5s ease-in-out infinite;"/>
+          <rect x="22" y="58" width="12" height="8" rx="3" fill="#1f2937"/>
+          <rect x="46" y="58" width="12" height="8" rx="3" fill="#1f2937"/>
+        </svg>
+      </div>
+      <div id="endVbMsg" style="background:rgba(6,10,30,.90);border:1.5px solid rgba(255,215,0,.38);border-radius:14px;padding:8px 12px;font-family:'Boogaloo',cursive;color:#FFD600;font-size:13px;max-width:180px;line-height:1.45;">
+        Parabéns! 🎉
+      </div>
+    </div>
+    <h2 id="endTitle">Parabéns!</h2>
+    <div class="stars-row" id="starsRow">
+      <span class="star" id="star1">⭐</span>
+      <span class="star" id="star2">⭐</span>
+      <span class="star" id="star3">⭐</span>
+    </div>
+    <div class="mscore" id="endTime">00:00</div>
+    <p id="endTxt"></p>
+    <button class="bplay" onclick="startGame()">🔄 Jogar outra vez</button>
+    <br><button class="bsec" onclick="showStart()">🏠 Início</button>
+    <p class="credit">Professora: Vanda Várzea</p>
+  </div>
+</div>
+
+<script>
+// ─── DADOS ───────────────────────────────────────────────────────
+// word = sem acentos (matching na grelha), display = com acentos (visual)
+const ALL_ENTRIES = [
+  {word:'PORTUGAL',   display:'PORTUGAL',   clue:'País ibérico com capital em Lisboa'},
+  {word:'ESPANHA',    display:'ESPANHA',    clue:'País ibérico com capital em Madrid'},
+  {word:'FRANCA',     display:'FRANÇA',     clue:'País com a Torre Eiffel em Paris'},
+  {word:'ALEMANHA',   display:'ALEMANHA',   clue:'País com a capital Berlim'},
+  {word:'ITALIA',     display:'ITÁLIA',     clue:'País em forma de bota com capital Roma'},
+  {word:'BELGICA',    display:'BÉLGICA',    clue:'País com capital Bruxelas, sede da UE'},
+  {word:'POLONIA',    display:'POLÓNIA',    clue:'País da Europa de Leste com capital Varsóvia'},
+  {word:'SUECIA',     display:'SUÉCIA',     clue:'País escandinavo com capital Estocolmo'},
+  {word:'AUSTRIA',    display:'ÁUSTRIA',    clue:'País alpino com capital Viena'},
+  {word:'GRECIA',     display:'GRÉCIA',     clue:'País berço da democracia com capital Atenas'},
+  {word:'ROMENIA',    display:'ROMÉNIA',    clue:'País dos Cárpatos com capital Bucareste'},
+  {word:'HUNGRIA',    display:'HUNGRIA',    clue:'País atravessado pelo Danúbio com capital Budapeste'},
+  {word:'CROACIA',    display:'CROÁCIA',    clue:'País mediterrânico com capital Zagrebe'},
+  {word:'BULGARIA',   display:'BULGÁRIA',   clue:'País balcânico com capital Sófia'},
+  {word:'MALTA',      display:'MALTA',      clue:'Menor país da UE, ilha no Mediterrâneo'},
+  {word:'CHIPRE',     display:'CHIPRE',     clue:'Ilha no Mediterrâneo Oriental com capital Nicósia'},
+  {word:'IRLANDA',    display:'IRLANDA',    clue:'Ilha com o trevo como símbolo, capital Dublim'},
+  {word:'FINLANDIA',  display:'FINLÂNDIA',  clue:'País nórdico com Aurora Boreal, capital Helsínquia'},
+  {word:'DINAMARCA',  display:'DINAMARCA',  clue:'País nórdico com capital Copenhaga'},
+  {word:'ESTONIA',    display:'ESTÓNIA',    clue:'País báltico com capital Taline'},
+  {word:'LETONIA',    display:'LETÓNIA',    clue:'País báltico com capital Riga'},
+  {word:'LITUANIA',   display:'LITUÂNIA',   clue:'Maior país báltico com capital Vínius'},
+  {word:'ESLOVAQUIA', display:'ESLOVÁQUIA', clue:'País da Europa Central com capital Bratislava'},
+  {word:'ESLOVENIA',  display:'ESLOVÉNIA',  clue:'País alpino com capital Liubliana'},
+  {word:'LUXEMBURGO', display:'LUXEMBURGO', clue:'Pequeno país com capital homónima'},
+];
+
+// ─── PUZZLES FIXOS ───────────────────────────────────────────────
+// Todos verificados — sem conflitos de letras nem palavras coladas
+const PUZZLES = {
+  1: [ // FÁCIL — 8 palavras
+    {id:1, word:'PORTUGAL', row:0, col:0,  dir:'across'},
+    {id:2, word:'POLONIA',  row:0, col:0,  dir:'down'},
+    {id:3, word:'ALEMANHA', row:0, col:6,  dir:'down'},
+    {id:4, word:'GRECIA',   row:2, col:4,  dir:'across'},
+    {id:5, word:'ITALIA',   row:7, col:4,  dir:'across'},
+    {id:6, word:'AUSTRIA',  row:4, col:6,  dir:'across'},
+    {id:7, word:'SUECIA',   row:0, col:11, dir:'down'},
+    {id:8, word:'MALTA',    row:1, col:9,  dir:'down'},
+  ],
+  2: [ // NORMAL — 13 palavras
+    {id:1,  word:'PORTUGAL',  row:0,  col:0,  dir:'across'},
+    {id:2,  word:'POLONIA',   row:0,  col:0,  dir:'down'},
+    {id:3,  word:'ALEMANHA',  row:6,  col:0,  dir:'across'},
+    {id:4,  word:'GRECIA',    row:4,  col:2,  dir:'down'},
+    {id:5,  word:'ITALIA',    row:9,  col:0,  dir:'across'},
+    {id:6,  word:'AUSTRIA',   row:6,  col:7,  dir:'down'},
+    {id:7,  word:'SUECIA',    row:8,  col:7,  dir:'across'},
+    {id:8,  word:'MALTA',     row:4,  col:12, dir:'down'},
+    {id:9,  word:'HUNGRIA',   row:11, col:2,  dir:'across'},
+    {id:10, word:'ROMENIA',   row:4,  col:10, dir:'across'},
+    {id:11, word:'IRLANDA',   row:9,  col:0,  dir:'down'},
+    {id:12, word:'CROACIA',   row:8,  col:10, dir:'down'},
+    {id:13, word:'DINAMARCA', row:14, col:0,  dir:'across'},
+  ],
+  3: [ // DIFÍCIL — 18 palavras
+    {id:1,  word:'PORTUGAL',  row:0,  col:0,  dir:'across'},
+    {id:2,  word:'POLONIA',   row:0,  col:0,  dir:'down'},
+    {id:3,  word:'ALEMANHA',  row:6,  col:0,  dir:'across'},
+    {id:4,  word:'GRECIA',    row:4,  col:2,  dir:'down'},
+    {id:5,  word:'ITALIA',    row:9,  col:0,  dir:'across'},
+    {id:6,  word:'AUSTRIA',   row:6,  col:7,  dir:'down'},
+    {id:7,  word:'SUECIA',    row:8,  col:7,  dir:'across'},
+    {id:8,  word:'MALTA',     row:4,  col:12, dir:'down'},
+    {id:9,  word:'HUNGRIA',   row:11, col:2,  dir:'across'},
+    {id:10, word:'ROMENIA',   row:4,  col:10, dir:'across'},
+    {id:11, word:'IRLANDA',   row:0,  col:14, dir:'down'},
+    {id:12, word:'CROACIA',   row:8,  col:10, dir:'down'},
+    {id:13, word:'DINAMARCA', row:1,  col:8,  dir:'across'},
+    {id:14, word:'FINLANDIA', row:8,  col:0,  dir:'down'},
+    {id:15, word:'ESTONIA',   row:14, col:4,  dir:'across'},
+    {id:16, word:'LITUANIA',  row:2,  col:0,  dir:'across'},
+    {id:17, word:'BULGARIA',  row:6,  col:10, dir:'across'},
+    {id:18, word:'CHIPRE',    row:12, col:10, dir:'across'},
+  ],
+};
+
+// ─── ESTADO ──────────────────────────────────────────────────────
+let diff=1, puzzle=[], gridData={}, cells={}, activeEntry=null, solvedEntries=[];
+let timerInterval=null, elapsed=0;
+let hintsUsed=0, maxHints=3;
+
+function setDiff(d){diff=d;[1,2,3].forEach(i=>document.getElementById('d'+i).classList.toggle('on',i===d));}
+function showStart(){
+  stopTimer();
+  document.getElementById('startMod').style.display='flex';
+  document.getElementById('endMod').style.display='none';
+  showVBCompanion(false);
+}
+
+// ─── TIMER ───────────────────────────────────────────────────────
+function startTimer(){
+  clearInterval(timerInterval);elapsed=0;
+  timerInterval=setInterval(()=>{
+    elapsed++;
+    const m=Math.floor(elapsed/60),s=elapsed%60;
+    document.getElementById('timer').textContent=
+      String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  },1000);
+}
+function stopTimer(){clearInterval(timerInterval);}
+
+// ─── BUILD PUZZLE ─────────────────────────────────────────────────
+function buildPuzzle(){
+  puzzle = PUZZLES[diff];
+  solvedEntries = [];
+  gridData = {}; // key:"r,c" => {letter, entries:[]}
+
+  // compute grid bounds
+  let maxR=0, maxC=0;
+  puzzle.forEach(e=>{
+    const len=e.word.length;
+    if(e.dir==='across'){maxR=Math.max(maxR,e.row);maxC=Math.max(maxC,e.col+len-1);}
+    else{maxR=Math.max(maxR,e.row+len-1);maxC=Math.max(maxC,e.col);}
+  });
+  const ROWS=maxR+1, COLS=maxC+1;
+
+  // fill gridData
+  puzzle.forEach(e=>{
+    const entryData=ALL_ENTRIES.find(x=>x.word===e.word);
+    const displayWord=entryData?entryData.display:e.word;
+    for(let i=0;i<e.word.length;i++){
+      const r=e.dir==='across'?e.row:e.row+i;
+      const c=e.dir==='across'?e.col+i:e.col;
+      const key=r+','+c;
+      if(!gridData[key]) gridData[key]={letter:e.word[i],displayLetter:displayWord[i],entries:[],userInput:'',r,c};
+      gridData[key].entries.push({entry:e,pos:i});
+    }
+  });
+
+  // number cells
+  let num=1;
+  const numbering={};
+  for(let r=0;r<=maxR;r++) for(let c=0;c<=maxC;c++){
+    const key=r+','+c;
+    if(!gridData[key]) continue;
+    const startsAcross=puzzle.some(e=>e.dir==='across'&&e.row===r&&e.col===c);
+    const startsDown=puzzle.some(e=>e.dir==='down'&&e.row===r&&e.col===c);
+    if(startsAcross||startsDown){
+      numbering[key]=num;
+      puzzle.forEach(e=>{if(e.row===r&&e.col===c) e.num=num;});
+      num++;
+    }
+  }
+
+  renderPuzzle(ROWS,COLS,numbering);
+  renderClues();
+  updateScore();
+}
+
+// ─── RENDER GRID ─────────────────────────────────────────────────
+function renderPuzzle(ROWS,COLS,numbering){
+  const g=document.getElementById('cwGrid');
+  g.style.gridTemplateColumns=`repeat(${COLS},var(--cell))`;
+  g.innerHTML='';
+  cells={};
+
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+    const div=document.createElement('div');
+    div.className='cw-cell';
+    const key=r+','+c;
+    if(gridData[key]){
+      div.classList.add('white');
+      if(numbering[key]){
+        const num=document.createElement('span');
+        num.className='cw-num';num.textContent=numbering[key];
+        div.appendChild(num);
+      }
+      const inp=document.createElement('input');
+      inp.maxLength=1;inp.autocomplete='off';inp.autocorrect='off';
+      inp.autocapitalize='characters';inp.spellcheck=false;
+      inp.dataset.r=r;inp.dataset.c=c;
+      inp.addEventListener('focus',()=>onCellFocus(r,c));
+      inp.addEventListener('input',e=>onInput(e,r,c));
+      inp.addEventListener('keydown',e=>onKeyDown(e,r,c));
+      inp.addEventListener('click',()=>onCellClick(r,c));
+      div.appendChild(inp);
+      cells[key]=div;
+    } else {
+      div.classList.add('black');
+    }
+    g.appendChild(div);
+  }
+}
+
+// ─── RENDER CLUES ────────────────────────────────────────────────
+function renderClues(){
+  const ac=document.getElementById('acrossClues');
+  const dn=document.getElementById('downClues');
+  ac.innerHTML='';dn.innerHTML='';
+
+  const entryData={}; // word->clue lookup
+  ALL_ENTRIES.forEach(e=>entryData[e.word]=e.clue);
+
+  puzzle.filter(e=>e.dir==='across').sort((a,b)=>a.num-b.num).forEach(e=>{
+    const div=buildClueItem(e,entryData[e.word]||e.word);
+    ac.appendChild(div);
+  });
+  puzzle.filter(e=>e.dir==='down').sort((a,b)=>a.num-b.num).forEach(e=>{
+    const div=buildClueItem(e,entryData[e.word]||e.word);
+    dn.appendChild(div);
+  });
+}
+
+function buildClueItem(e,clue){
+  const div=document.createElement('div');
+  div.className='clue-item'+(solvedEntries.includes(e.id)?' correct':'');
+  div.id='clue-'+e.dir+'-'+e.id;
+  div.innerHTML=`<span class="clue-num">${e.num}${e.dir==='across'?'→':'↓'}</span>
+    <span class="clue-txt${solvedEntries.includes(e.id)?' correct':''}">${clue} (${e.word.length})</span>`;
+  div.addEventListener('click',()=>focusEntry(e));
+  return div;
+}
+
+// ─── INTERACTION ─────────────────────────────────────────────────
+let lastClickedCell = null;
+
+function onCellClick(r,c){
+  const key=r+','+c;
+  if(!gridData[key]) return;
+  const entries=getEntriesAt(r,c);
+  if(!entries.length) return;
+
+  if(entries.length===1){
+    // só uma palavra — foca sempre nela
+    focusEntry(entries[0],r,c);
+  } else {
+    // interseção — alterna direção ao clicar na mesma célula
+    const sameCell=(lastClickedCell===key);
+    if(sameCell && activeEntry){
+      const other=entries.find(e=>e.id!==activeEntry.id);
+      if(other){ focusEntry(other,r,c); return; }
+    }
+    // prefere manter direção atual se possível
+    const same=entries.find(e=>activeEntry && e.dir===activeEntry.dir);
+    focusEntry(same||entries[0], r, c);
+  }
+  lastClickedCell=key;
+}
+
+function onCellFocus(r,c){
+  // chamado pelo focus nativo — não muda a entrada ativa
+  const key=r+','+c;
+  if(!gridData[key]||!activeEntry) return;
+  const entries=getEntriesAt(r,c);
+  if(!entries.find(e=>e.id===activeEntry.id)){
+    // célula não pertence à entrada ativa — muda
+    const same=entries.find(e=>activeEntry && e.dir===activeEntry.dir);
+    const entry=same||entries[0];
+    if(entry) focusEntry(entry,r,c);
+  }
+}
+
+function getEntriesAt(r,c){
+  const key=r+','+c;
+  if(!gridData[key]) return [];
+  return gridData[key].entries.map(e=>e.entry);
+}
+
+function focusEntry(entry, focusR, focusC){
+  activeEntry=entry;
+  highlightEntry(entry);
+  // banner com pista melhorada
+  const entryData=ALL_ENTRIES.find(e=>e.word===entry.word);
+  const banner=document.getElementById('activeClueBanner');
+  banner.style.display='block';
+  const dirClass=entry.dir==='across'?'across':'down';
+  const dirLabel=entry.dir==='across'?'➡️ Horizontal':'⬇️ Vertical';
+  const clueText=entryData?entryData.clue:entry.word;
+  banner.innerHTML=
+    `<div class="clue-main"><span class="clue-dir ${dirClass}">${dirLabel}</span>`+
+    `<span>${entry.num}</span> ${clueText} <span style="color:rgba(255,255,255,.35)">(${entry.word.length})</span></div>`+
+    `<div class="word-pattern" id="wordPattern"></div>`;
+  updateWordPattern();
+  speak(clueText);
+  // destaca pista
+  document.querySelectorAll('.clue-item').forEach(el=>el.classList.remove('active'));
+  const clueEl=document.getElementById('clue-'+entry.dir+'-'+entry.id);
+  if(clueEl){clueEl.classList.add('active');clueEl.scrollIntoView({block:'nearest',behavior:'smooth'});}
+  // foca a célula certa: a indicada, ou a primeira vazia da palavra
+  let targetR=focusR??entry.row, targetC=focusC??entry.col;
+  // se a célula indicada já está certa, vai para a primeira vazia
+  if(focusR==null){
+    for(let i=0;i<entry.word.length;i++){
+      const r=entry.dir==='across'?entry.row:entry.row+i;
+      const c=entry.dir==='across'?entry.col+i:entry.col;
+      if(!gridData[r+','+c]?.userInput){ targetR=r; targetC=c; break; }
+    }
+  }
+  const inp=getInput(targetR,targetC);
+  if(inp) setTimeout(()=>inp.focus(),10);
+}
+
+function updateWordPattern(){
+  if(!activeEntry) return;
+  const wp=document.getElementById('wordPattern');
+  if(!wp) return;
+  const focused=document.activeElement;
+  const focusR=focused?.dataset?.r!=null?parseInt(focused.dataset.r):null;
+  const focusC=focused?.dataset?.c!=null?parseInt(focused.dataset.c):null;
+  let html='';
+  for(let i=0;i<activeEntry.word.length;i++){
+    const r=activeEntry.dir==='across'?activeEntry.row:activeEntry.row+i;
+    const c=activeEntry.dir==='across'?activeEntry.col+i:activeEntry.col;
+    const key=r+','+c;
+    const d=gridData[key];
+    const raw=d?.userInput||'';
+    // mostra com acento se correto, sem se errado
+    const letter=raw?(raw===d.letter?d.displayLetter:raw):'';
+    const isCurrent=(r===focusR && c===focusC);
+    const cls=isCurrent?'current':letter?'filled':'empty';
+    html+=`<div class="wp-cell ${cls}">${letter||'·'}</div>`;
+  }
+  wp.innerHTML=html;
+}
+
+function highlightEntry(entry){
+  document.querySelectorAll('.cw-cell.white').forEach(el=>{
+    el.classList.remove('active','word-active');
+  });
+  for(let i=0;i<entry.word.length;i++){
+    const r=entry.dir==='across'?entry.row:entry.row+i;
+    const c=entry.dir==='across'?entry.col+i:entry.col;
+    const el=cells[r+','+c];
+    if(el) el.classList.add('word-active');
+  }
+}
+
+function getInput(r,c){
+  const el=cells[r+','+c];
+  return el?el.querySelector('input'):null;
+}
+
+// Remove acentos para comparação
+function stripAccents(str){
+  return str.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+}
+
+function onInput(e,r,c){
+  const inp=e.target;
+  // aceita qualquer letra — substitui diretamente sem precisar apagar
+  let val=inp.value.replace(/[^a-zA-ZÀ-ú]/g,'').toUpperCase().slice(-1);
+  // normaliza sem acentos para matching
+  const valNorm=stripAccents(val);
+  const key=r+','+c;
+  if(gridData[key]){
+    gridData[key].userInput=valNorm;
+    // se a letra está correta, mostra a versão com acento
+    if(valNorm===gridData[key].letter){
+      inp.value=gridData[key].displayLetter;
+    } else {
+      inp.value=valNorm;
+    }
+  }
+  checkCellCorrect(r,c);
+  if(valNorm) advanceCursor(r,c);
+  updateScore();
+  updateWordPattern();
+}
+
+function onKeyDown(e,r,c){
+  if(e.key==='Backspace'){
+    const key=r+','+c;
+    const d=gridData[key];
+    if(d && d.userInput){
+      // tem letra — apaga só esta célula
+      d.userInput='';
+      const inp=getInput(r,c);
+      if(inp) inp.value='';
+      checkCellCorrect(r,c);
+      updateScore();
+    } else {
+      // célula vazia — recua E apaga a anterior
+      retreatCursor(r,c);
+    }
+    updateWordPattern();
+    e.preventDefault();
+  }
+  else if(e.key==='ArrowRight'){ moveDir(r,c,0,1,'across');  e.preventDefault(); }
+  else if(e.key==='ArrowLeft'){  moveDir(r,c,0,-1,'across'); e.preventDefault(); }
+  else if(e.key==='ArrowDown'){  moveDir(r,c,1,0,'down');    e.preventDefault(); }
+  else if(e.key==='ArrowUp'){    moveDir(r,c,-1,0,'down');   e.preventDefault(); }
+  else if(e.key==='Enter'||e.key===' '){
+    // Enter/Espaço alterna direção na interseção
+    const entries=getEntriesAt(r,c);
+    if(entries.length>1){
+      const other=entries.find(e=>e.id!==activeEntry?.id);
+      if(other) focusEntry(other,r,c);
+    }
+    e.preventDefault();
+  }
+}
+
+function moveDir(r,c,dr,dc,preferDir){
+  // seta muda direção ativa se necessário, depois move
+  if(activeEntry && activeEntry.dir!==preferDir){
+    const entries=getEntriesAt(r,c);
+    const match=entries.find(e=>e.dir===preferDir);
+    if(match){ focusEntry(match,r,c); return; }
+  }
+  const nr=r+dr, nc=c+dc;
+  if(cells[nr+','+nc]){
+    const inp=getInput(nr,nc);
+    if(inp) inp.focus();
+  }
+}
+
+function advanceCursor(r,c){
+  if(!activeEntry) return;
+  const dr=activeEntry.dir==='down'?1:0, dc=activeEntry.dir==='across'?1:0;
+  // procura próxima célula vazia ou errada da palavra
+  let nr=r+dr, nc=c+dc;
+  while(cells[nr+','+nc]){
+    const key=nr+','+nc;
+    const belongs=gridData[key]?.entries.some(e=>e.entry.id===activeEntry.id);
+    if(!belongs) break;
+    if(!gridData[key]?.userInput){
+      getInput(nr,nc)?.focus(); return;
+    }
+    nr+=dr; nc+=dc;
+  }
+  // se todas as células têm letra, verifica se está resolvida
+  if(isEntrySolved(activeEntry)){
+    checkEntrySolved(activeEntry);
+    goToNextEntry();
+  } else {
+    // não está resolvida — foca a primeira célula errada desta palavra
+    for(let i=0;i<activeEntry.word.length;i++){
+      const er=activeEntry.dir==='across'?activeEntry.row:activeEntry.row+i;
+      const ec=activeEntry.dir==='across'?activeEntry.col+i:activeEntry.col;
+      const ek=er+','+ec;
+      if(gridData[ek] && gridData[ek].userInput!==gridData[ek].letter){
+        getInput(er,ec)?.focus(); return;
+      }
+    }
+  }
+}
+
+function goToNextEntry(){
+  if(!activeEntry) return;
+  // ordena todas as entradas por número e pega a próxima não resolvida
+  const sorted=[...puzzle].sort((a,b)=>a.num-b.num||(a.dir==='across'?-1:1));
+  const idx=sorted.findIndex(e=>e.id===activeEntry.id);
+  for(let i=1;i<=sorted.length;i++){
+    const next=sorted[(idx+i)%sorted.length];
+    if(!solvedEntries.includes(next.id)){
+      focusEntry(next);
+      return;
+    }
+  }
+}
+
+function retreatCursor(r,c){
+  if(!activeEntry) return;
+  const dr=activeEntry.dir==='down'?-1:0, dc=activeEntry.dir==='across'?-1:0;
+  const nr=r+dr, nc=c+dc;
+  const key=nr+','+nc;
+  if(cells[key]){
+    // verifica se a célula anterior pertence à entrada ativa
+    const belongs=gridData[key]?.entries.some(e=>e.entry.id===activeEntry.id);
+    if(belongs){
+      gridData[key].userInput='';
+      const inp=getInput(nr,nc);
+      if(inp){ inp.value=''; inp.focus(); }
+      checkCellCorrect(nr,nc);
+      updateScore();
+    }
+  }
+}
+
+function checkCellCorrect(r,c){
+  const key=r+','+c;
+  const d=gridData[key];
+  if(!d) return;
+  const el=cells[key];
+  if(!el) return;
+  const inp=getInput(r,c);
+  if(d.userInput===d.letter){
+    // mostra a versão com acento
+    if(inp) inp.value=d.displayLetter;
+    if(!el.classList.contains('correct')){
+      el.classList.add('correct');
+      // pop animation
+      el.classList.remove('cell-pop');
+      void el.offsetWidth;
+      el.classList.add('cell-pop');
+    }
+  } else {
+    el.classList.remove('correct');
+    // wrong flash if there's a wrong letter
+    if(d.userInput && d.userInput!==d.letter){
+      el.classList.remove('wrong-flash');
+      void el.offsetWidth;
+      el.classList.add('wrong-flash');
+      setTimeout(()=>el.classList.remove('wrong-flash'),450);
+    }
+  }
+  // check if whole entry is solved
+  if(activeEntry) checkEntrySolved(activeEntry);
+  // also check all entries on this cell
+  getEntriesAt(r,c).forEach(e=>checkEntrySolved(e));
+}
+
+function checkEntrySolved(entry){
+  const solved=isEntrySolved(entry);
+  if(solved&&!solvedEntries.includes(entry.id)){
+    solvedEntries.push(entry.id);
+    const entryData=ALL_ENTRIES.find(e=>e.word===entry.word);
+    const displayName=entryData?spokenForm(entry.word):entry.word;
+    speak('Muito bem! '+displayName);
+    // mark clue
+    const clueEl=document.getElementById('clue-'+entry.dir+'-'+entry.id);
+    if(clueEl){
+      clueEl.classList.add('correct');
+      clueEl.querySelector('.clue-txt')?.classList.add('correct');
+    }
+    vbOnWordSolved();
+    updateScore();
+    if(solvedEntries.length===puzzle.length) setTimeout(endGame,600);
+  }
+}
+
+function isEntrySolved(entry){
+  for(let i=0;i<entry.word.length;i++){
+    const r=entry.dir==='across'?entry.row:entry.row+i;
+    const c=entry.dir==='across'?entry.col+i:entry.col;
+    const key=r+','+c;
+    if(!gridData[key]||gridData[key].userInput!==entry.word[i]) return false;
+  }
+  return true;
+}
+
+function updateScore(){
+  document.getElementById('score').textContent=solvedEntries.length+'/'+puzzle.length+' ✅';
+}
+
+// ─── VOZ ─────────────────────────────────────────────────────────
+const PHONETIC={
+  'PORTUGAL':'Portugal','ESPANHA':'Espanha','FRANCA':'França',
+  'ALEMANHA':'Alemanha','ITALIA':'Itália','BELGICA':'Bélgica',
+  'POLONIA':'Polónia','SUECIA':'Suécia','AUSTRIA':'Áustria',
+  'GRECIA':'Grécia','ROMENIA':'Roménia','HUNGRIA':'Hungria',
+  'CROACIA':'Croácia','BULGARIA':'Bulgária','ESLOVENIA':'Eslovénia',
+  'LITUANIA':'Lituânia','LETONIA':'Letónia','ESTONIA':'Estónia',
+  'MALTA':'Malta','CHIPRE':'Chipre','LUXEMBURGO':'Luxemburgo',
+  'IRLANDA':'Irlanda','FINLANDIA':'Finlândia','DINAMARCA':'Dinamarca',
+  'ESLOVAQUIA':'Eslováquia',
+  'Lisboa':'Lisboa','Madrid':'Madride','Paris':'Pari','Berlim':'Berlim',
+  'Viena':'Viena','Atenas':'Atenas','Dublim':'Dublim','Varsóvia':'Varssóvia',
+  'Estocolmo':'Estocolmo','Copenhaga':'Copenhaga','Helsínquia':'Helssínquia',
+  'Bucareste':'Bucareste','Budapeste':'Budapeste','Zagrebe':'Zagreb',
+  'Bratislava':'Bratislava','Liubliana':'Liubliana','Taline':'Taline',
+  'Riga':'Riga','Vínius':'Vínius','Nicósia':'Nicózia','Valeta':'Valeta',
+  'Sófia':'Sófia','Bruxelas':'Bruxelas','Amsterdão':'Amsterdão',
+  'UE':'União Europeia','Danúbio':'Danúbio','Cárpatos':'Cárpatos',
+  'báltico':'báltico','nórdico':'nórdico','ibérico':'ibérico',
+  'Mediterrâneo':'Mediterrâneo','democracia':'democracia',
+};
+
+function spokenForm(txt){
+  let result=txt;
+  const keys=Object.keys(PHONETIC).sort((a,b)=>b.length-a.length);
+  keys.forEach(k=>{
+    const re=new RegExp(k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi');
+    result=result.replace(re,PHONETIC[k]);
+  });
+  return result;
+}
+
+let sndOn=true;
+function speak(txt){
+  if(!sndOn) return;
+  try{
+    window.speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(spokenForm(txt));
+    u.lang='pt-PT';u.rate=0.84;u.pitch=1.05;
+    const vs=window.speechSynthesis.getVoices();
+    const pt=vs.find(v=>v.lang==='pt-PT')||vs.find(v=>v.lang.startsWith('pt'));
+    if(pt) u.voice=pt;
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+window.speechSynthesis?.getVoices();
+
+// ─── ESCALA DA GRELHA ────────────────────────────────────────────
+function scaleGrid(){
+  const scaler = document.getElementById('gridScaler');
+  const wrap   = document.getElementById('gridWrap');
+  const grid   = document.getElementById('cwGrid');
+  if(!scaler || !grid) return;
+
+  // Reset scale to measure natural size
+  scaler.style.transform = 'scale(1)';
+  scaler.style.width  = '';
+  scaler.style.height = '';
+
+  const gridW = grid.scrollWidth;
+  const gridH = grid.scrollHeight;
+  if(!gridW || !gridH) return;
+
+  // Available width inside the wrapper (subtract padding 14px*2)
+  const available = wrap.clientWidth - 28;
+  const scale = Math.min(1, available / gridW);
+
+  scaler.style.transform = `scale(${scale})`;
+  scaler.style.transformOrigin = 'top left';
+  // Make wrapper height match scaled grid so layout doesn't collapse
+  scaler.style.width  = gridW + 'px';
+  scaler.style.height = (gridH * scale) + 'px';
+  wrap.style.height   = (gridH * scale + 28) + 'px';
+}
+window.addEventListener('resize', scaleGrid);
+
+
+function startGame(){
+  document.getElementById('startMod').style.display='none';
+  document.getElementById('endMod').style.display='none';
+  document.getElementById('activeClueBanner').style.display='none';
+  activeEntry=null;solvedEntries=[];
+  // reset hints
+  hintsUsed=0;
+  maxHints=diff===1?3:diff===2?4:5;
+  updateHintBadge();
+  buildPuzzle();
+  setTimeout(scaleGrid, 50);
+  startTimer();
+  // Show VanBerto companion
+  showVBCompanion(true);
+  vbSetMsg(vbRandom(VB_MSGS_START));
+  // focus first entry
+  setTimeout(()=>{
+    const first=puzzle.find(e=>e.num===1);
+    if(first) focusEntry(first);
+  },100);
+}
+
+function updateHintBadge(){
+  const remaining=maxHints-hintsUsed;
+  const badge=document.getElementById('hintBadge');
+  badge.textContent=remaining;
+  badge.style.background=remaining>0?'#1565ff':'#64748b';
+}
+
+function endGame(){
+  stopTimer();
+  showVBCompanion(false);
+  const m=Math.floor(elapsed/60),s=elapsed%60;
+  const timeStr=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  document.getElementById('endTime').textContent=timeStr;
+  
+  // calculate stars: based on time and hints
+  const totalWords=puzzle.length;
+  const secsPerWord=elapsed/totalWords;
+  const hintPenalty=hintsUsed*0.5; // each hint costs half a star
+  let stars=3;
+  if(secsPerWord>20) stars=2;
+  if(secsPerWord>40) stars=1;
+  stars=Math.max(1,Math.round(stars-hintPenalty));
+  
+  // show stars
+  for(let i=1;i<=3;i++){
+    const el=document.getElementById('star'+i);
+    el.classList.toggle('earned',i<=stars);
+  }
+  
+  // dynamic messages based on stars
+  const titles=['','Bom trabalho! 👏','Muito bem! 🎉','Excelente! 🏆'];
+  const msgs=['','Conseguiste! Tenta mais rápido da próxima vez!',
+    'Ótimo resultado! Conheces bem a UE!','Perfeito! És um verdadeiro especialista!'];
+  const vbMsgs=['','Nada mau! 👍<br>Tenta superar-te!',
+    'Fantástico! 🎉<br>Conheces bem<br>a União Europeia!',
+    'Incrível! 🌟<br>Resultado<br>perfeito!'];
+  
+  document.getElementById('endTitle').textContent=titles[stars];
+  const hintNote=hintsUsed>0?' ('+hintsUsed+' dica'+(hintsUsed>1?'s':'')+' usada'+(hintsUsed>1?'s':'')+')':'';
+  document.getElementById('endTxt').textContent=
+    'Completaste '+totalWords+' palavras em '+timeStr+'!'+hintNote;
+  document.getElementById('endVbMsg').innerHTML=vbMsgs[stars];
+  document.getElementById('endMod').style.display='flex';
+  
+  // confetti!
+  launchConfetti();
+}
+
+// ─── VANBERTO COMPANION ──────────────────────────────────────────
+const VB_MSGS_START=[
+  'Vamos lá! Escolhe uma palavra para começar! 🤩',
+  'Olha as pistas e descobre os países! 🔍',
+  'Estou aqui para te ajudar! Boa sorte! 🍀',
+];
+const VB_MSGS_SOLVE=[
+  'Boa! Acertaste! 🎉',
+  'Muito bem! Continua assim! 💪',
+  'Excelente! Sabes mesmo! ⭐',
+  'Fantástico! Que craque! 🏆',
+  'Isso mesmo! Estás a arrasar! 🔥',
+  'Uau! Que rápido! ⚡',
+  'Incrível! Mais uma! 🌟',
+];
+const VB_MSGS_HALF=[
+  'Já vais a meio! Não pares agora! 🚀',
+  'Metade feita! Estás quase lá! 💫',
+];
+const VB_MSGS_ALMOST=[
+  'Falta tão pouco! Força! 🏁',
+  'Quase, quase! Só mais um bocadinho! 😄',
+];
+
+function showVBCompanion(show){
+  document.getElementById('vbCompanion').style.display=show?'flex':'none';
+}
+
+function vbSetMsg(txt){
+  const bubble=document.getElementById('vbBubbleText');
+  bubble.textContent=txt;
+  // re-trigger bubble animation
+  const parent=document.getElementById('vbBubble');
+  parent.style.animation='none';
+  parent.offsetHeight; // reflow
+  parent.style.animation='bubblePop .35s ease-out';
+}
+
+function vbCelebrate(){
+  const char=document.getElementById('vbChar');
+  const arm=document.getElementById('vbWaveArm');
+  const stars=document.getElementById('vbStars');
+  // celebrate bounce
+  char.style.animation='vbCelebrate .7s ease';
+  arm.style.animation='vbWaveHand .6s ease-in-out 2';
+  stars.style.opacity='1';
+  setTimeout(()=>{
+    char.style.animation='vbIdle 3s ease-in-out infinite';
+    arm.style.animation='';
+    stars.style.opacity='0';
+  },1800);
+}
+
+function vbRandom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+function vbOnWordSolved(){
+  const total=puzzle.length;
+  const done=solvedEntries.length;
+  const ratio=done/total;
+  
+  if(ratio>=1) return; // endGame handles final
+  
+  if(ratio>=0.85){
+    vbSetMsg(vbRandom(VB_MSGS_ALMOST));
+  } else if(Math.abs(ratio-0.5)<0.08 && done>1){
+    vbSetMsg(vbRandom(VB_MSGS_HALF));
+  } else {
+    vbSetMsg(vbRandom(VB_MSGS_SOLVE));
+  }
+  vbCelebrate();
+}
+
+// ─── DICA (HINT) ────────────────────────────────────────────────
+function useHint(){
+  if(!activeEntry) return;
+  if(hintsUsed>=maxHints){
+    vbSetMsg('Já usaste todas as dicas! 😅');
+    return;
+  }
+  // find first empty or wrong cell in active entry
+  let targetR=null,targetC=null;
+  for(let i=0;i<activeEntry.word.length;i++){
+    const r=activeEntry.dir==='across'?activeEntry.row:activeEntry.row+i;
+    const c=activeEntry.dir==='across'?activeEntry.col+i:activeEntry.col;
+    const key=r+','+c;
+    const d=gridData[key];
+    if(d && d.userInput!==d.letter){
+      targetR=r;targetC=c;break;
+    }
+  }
+  if(targetR===null) return; // word already complete
+  
+  const key=targetR+','+targetC;
+  gridData[key].userInput=gridData[key].letter;
+  const inp=getInput(targetR,targetC);
+  if(inp) inp.value=gridData[key].displayLetter;
+  checkCellCorrect(targetR,targetC);
+  updateScore();
+  
+  hintsUsed++;
+  updateHintBadge();
+  updateWordPattern();
+  vbSetMsg('Aqui tens uma ajuda! 💡');
+  speak(gridData[key].displayLetter);
+}
+
+// ─── APAGAR (ERASER) ────────────────────────────────────────────
+function eraseCell(){
+  if(!activeEntry) return;
+  // find focused input
+  const focused=document.activeElement;
+  if(focused && focused.tagName==='INPUT' && focused.dataset.r!=null){
+    const r=parseInt(focused.dataset.r);
+    const c=parseInt(focused.dataset.c);
+    const key=r+','+c;
+    const d=gridData[key];
+    if(d){
+      d.userInput='';
+      focused.value='';
+      checkCellCorrect(r,c);
+      updateScore();
+      updateWordPattern();
+    }
+  }
+}
+
+// ─── CONFETTI 🎊 ────────────────────────────────────────────────
+function launchConfetti(){
+  const canvas=document.getElementById('confettiCanvas');
+  const ctx=canvas.getContext('2d');
+  canvas.width=window.innerWidth;
+  canvas.height=window.innerHeight;
+  
+  const colors=['#FFD600','#1565ff','#7c3aed','#10b981','#ef4444','#f97316','#38bdf8','#ec4899'];
+  const pieces=[];
+  for(let i=0;i<120;i++){
+    pieces.push({
+      x:Math.random()*canvas.width,
+      y:Math.random()*canvas.height*-1 -20,
+      w:Math.random()*8+4,
+      h:Math.random()*5+3,
+      color:colors[Math.floor(Math.random()*colors.length)],
+      vy:Math.random()*3+2,
+      vx:(Math.random()-0.5)*2,
+      rot:Math.random()*360,
+      rv:(Math.random()-0.5)*8,
+      opacity:1,
+    });
+  }
+  
+  let frame=0;
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    let alive=false;
+    pieces.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; p.rot+=p.rv;
+      if(frame>90) p.opacity=Math.max(0,p.opacity-0.015);
+      if(p.opacity<=0) return;
+      alive=true;
+      ctx.save();
+      ctx.translate(p.x,p.y);
+      ctx.rotate(p.rot*Math.PI/180);
+      ctx.globalAlpha=p.opacity;
+      ctx.fillStyle=p.color;
+      ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);
+      ctx.restore();
+    });
+    frame++;
+    if(alive && frame<220) requestAnimationFrame(draw);
+    else ctx.clearRect(0,0,canvas.width,canvas.height);
+  }
+  requestAnimationFrame(draw);
+}
+
+showStart();
+</script>
+</body>
+</html>
