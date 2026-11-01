@@ -28,7 +28,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   padding:12px 10px 150px;gap:14px;min-height:100vh;}
 
 /* HEADER */
-header{width:100%;max-width:900px;display:flex;align-items:center;justify-content:space-between;
+header{width:100%;max-width:min(1600px,98vw);display:flex;align-items:center;justify-content:space-between;
   background:linear-gradient(180deg,rgba(5,5,20,.98),rgba(10,10,28,.95));
   border:1px solid rgba(255,214,0,.18);border-radius:18px;
   padding:10px 16px;backdrop-filter:blur(14px);
@@ -46,11 +46,23 @@ header{width:100%;max-width:900px;display:flex;align-items:center;justify-conten
 .hbtn:active{transform:scale(.88);}
 
 /* LAYOUT */
-#mainArea{width:100%;max-width:900px;display:flex;flex-direction:column;gap:14px;}
+#mainArea{width:100%;max-width:min(1600px,98vw);display:flex;flex-direction:column;gap:14px;}
 @media(min-width:700px){
   #mainArea{flex-direction:row;align-items:flex-start;}
   #gridWrap{flex:1;min-width:0;}
-  #cluesPanel{width:220px;flex-shrink:0;}
+  #cluesPanel{width:clamp(220px,26vw,430px);flex-shrink:0;max-height:calc(100vh - 200px);}
+}
+@media(min-width:1100px){
+  .clue-section h3{font-size:19px;}
+  .clue-num{font-size:16px;min-width:28px;}
+  .clue-txt{font-size:15px;}
+  .htitle{font-size:26px;}
+  .clue-item{padding:7px 10px;}
+}
+@media(min-width:1600px){
+  .clue-section h3{font-size:22px;}
+  .clue-txt{font-size:17px;}
+  .clue-num{font-size:18px;}
 }
 
 /* GRID WRAPPER — escala automaticamente para caber no ecrã */
@@ -124,7 +136,7 @@ header{width:100%;max-width:900px;display:flex;align-items:center;justify-conten
 .clue-txt.correct{text-decoration:line-through;color:rgba(0,200,83,.7);}
 
 /* ACTIVE CLUE BANNER */
-#activeClueBanner{width:100%;max-width:900px;
+#activeClueBanner{width:100%;max-width:min(1600px,98vw);
   background:linear-gradient(135deg,rgba(21,101,255,.14),rgba(124,58,237,.10));
   border:1.5px solid rgba(21,101,255,.35);
   border-radius:16px;padding:10px 14px;
@@ -271,6 +283,7 @@ header{width:100%;max-width:900px;display:flex;align-items:center;justify-conten
       <button class="hbtn" id="btnHint" onclick="useHint()" title="Dica">💡<span class="badge" id="hintBadge">3</span></button>
       <button class="hbtn" id="btnErase" onclick="eraseCell()" title="Apagar">⌫</button>
       <button class="hbtn" id="btnSnd" onclick="sndOn=!sndOn;this.textContent=sndOn?'🔊':'🔇'">🔊</button>
+      <button class="hbtn" id="btnFs" onclick="toggleFullscreen()" title="Ecrã inteiro" aria-label="Ecrã inteiro"></button>
       <button class="hbtn" onclick="showStart()">🏠</button>
     </div>
   </header>
@@ -945,7 +958,15 @@ function scaleGrid(){
 
   // Available width inside the wrapper (subtract padding 14px*2)
   const available = wrap.clientWidth - 28;
-  const scale = Math.min(1, available / gridW);
+  let scale = Math.min(1, available / gridW);
+  if(window.innerWidth >= 700){
+    // ecrã grande: aumenta a grelha para aproveitar a largura e a altura disponíveis
+    const top = wrap.getBoundingClientRect().top + window.scrollY;
+    const bn = document.getElementById('activeClueBanner');
+    const bannerReserve = (bn && getComputedStyle(bn).display==='none') ? 100 : 0; // a dica ativa aparece logo a seguir
+    const availH = window.innerHeight - top - 28 - 110 - bannerReserve;
+    scale = Math.max(0.5, Math.min(2.8, available / gridW, availH / gridH));
+  }
 
   scaler.style.transform = `scale(${scale})`;
   scaler.style.transformOrigin = 'top left';
@@ -1402,6 +1423,34 @@ setInterval(()=>{
 },18000);
 
 setTimeout(()=>showBub('Olá! Sou o VanBerto\'s! Completa as palavras cruzadas da UE! 🇪🇺'),900);
+
+// ── ECRÃ INTEIRO ─────────────────────────────────────────────────────────
+const FS_IN='<svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V3h4M13 3h4v4M17 13v4h-4M7 17H3v-4"/></svg>';
+const FS_OUT='<svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3v4H3M13 3v4h4M17 13h-4v4M3 13h4v4"/></svg>';
+function fsElement(){return document.fullscreenElement||document.webkitFullscreenElement||null;}
+function toggleFullscreen(){
+  const d=document,el=d.documentElement;
+  try{
+    if(!fsElement()){ const p=(el.requestFullscreen||el.webkitRequestFullscreen).call(el); if(p&&p.catch)p.catch(()=>{}); }
+    else{ const p=(d.exitFullscreen||d.webkitExitFullscreen).call(d); if(p&&p.catch)p.catch(()=>{}); }
+  }catch(e){}
+}
+function fsUpdate(){
+  const b=document.getElementById('btnFs'); if(!b)return;
+  const on=!!fsElement();
+  b.innerHTML=on?FS_OUT:FS_IN;
+  b.title=on?'Sair do ecrã inteiro':'Ecrã inteiro';
+  b.setAttribute('aria-label',b.title);
+  setTimeout(()=>window.dispatchEvent(new Event('resize')),150);
+}
+(function(){
+  const b=document.getElementById('btnFs');
+  const ok=document.documentElement.requestFullscreen||document.documentElement.webkitRequestFullscreen;
+  if(!ok){ if(b)b.style.display='none'; return; }   // ex.: iPhone não suporta
+  fsUpdate();
+  document.addEventListener('fullscreenchange',fsUpdate);
+  document.addEventListener('webkitfullscreenchange',fsUpdate);
+})();
 </script>
 </body>
 </html>
