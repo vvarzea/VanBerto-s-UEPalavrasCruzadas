@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <title>VanBerto's — Palavras Cruzadas da UE 🇪🇺</title>
-<link href="https://fonts.googleapis.com/css2?family=Boogaloo&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 :root{--bg:#05091a;--gold:#FFD600;--cell:42px;}
@@ -271,6 +271,217 @@ header{width:100%;max-width:min(1600px,98vw);display:flex;align-items:center;jus
 #prof-tag{position:fixed;bottom:.6rem;left:50%;transform:translateX(-50%);z-index:600;font-family:'Nunito',sans-serif;font-size:clamp(.65rem,1.8vw,.78rem);color:rgba(255,214,0,.85);font-weight:800;white-space:nowrap;text-shadow:0 1px 6px rgba(0,0,0,.8);pointer-events:none;}
 @media(prefers-reduced-motion:reduce){#fixed-vb-robot{animation:none;}}
 
+
+/* ═══════════════════════════════════════════════════════════════════
+   TEMA "Central de Missões" — igual ao das Palavras Cruzadas da Cibersegurança
+   (contornos grossos, sombras de botão, chips de nível, cartão final com
+   estatísticas), mas com o azul-marinho e o dourado da União Europeia.
+   Bloco final: sobrepõe-se ao estilo anterior.
+   ═══════════════════════════════════════════════════════════════════ */
+:root{--ink:#010617;--navy:#0f1d55;--navy2:#1b2f86;--goldsh:#7a6200;--soft:#9cc4ff;--blue:#4d8dff;}
+
+/* tipos de letra (os mesmos do menu da UE) */
+.htitle,#timer,#score,.clue-section h3,.clue-num,.mcard h2,.bplay,.bsec,.dbtn,.name-row label,
+#fixed-robot-name,.win-stat,.cw-cell input,.cw-num,.clue-dir,.clue-main,.wp-cell,.hbtn .badge,
+#activeClueBanner .clue-dir,#activeClueBanner .clue-main,#activeClueBanner .wp-cell{
+  font-family:'Fredoka One','Fredoka',cursive;font-weight:400;}
+
+/* cartões principais */
+header,#gridWrap,#cluesPanel,.mcard{
+  background:linear-gradient(155deg,var(--navy),#0a1236);
+  border:3px solid var(--gold);border-radius:18px;
+  box-shadow:0 5px 0 var(--goldsh),0 0 40px rgba(0,60,255,.18);
+  backdrop-filter:none;
+}
+
+/* ── CABEÇALHO ── */
+header{padding:8px 14px;gap:8px 12px;}
+.htitle{font-size:clamp(17px,4.6vw,26px);text-shadow:0 3px 0 var(--ink);white-space:nowrap;}
+.hinfo{gap:7px;}
+#score{background:var(--gold);color:var(--ink);border:2.5px solid var(--ink);border-radius:20px;
+  box-shadow:0 2px 0 var(--ink);padding:3px 11px;font-size:clamp(13px,3.5vw,16px);white-space:nowrap;}
+#timer{background:#0a1236;color:#fff;border:2.5px solid var(--ink);border-radius:10px;
+  box-shadow:0 2px 0 var(--ink),inset 0 0 0 1px rgba(255,214,0,.25);padding:3px 11px;}
+.hbtn{
+  background:var(--navy2);color:#fff;border:2.5px solid var(--ink);border-radius:10px;
+  width:36px;height:36px;box-shadow:0 3px 0 var(--ink);
+  transition:transform .08s,box-shadow .08s,background .12s;
+}
+.hbtn:hover{background:#2540a8;transform:translateY(-1px);box-shadow:0 4px 0 var(--ink);}
+.hbtn:active{transform:translateY(3px);box-shadow:0 0 0 var(--ink);}
+.hbtn:focus-visible,.bplay:focus-visible,.bsec:focus-visible,.dbtn:focus-visible,.clue-item:focus-visible{outline:3px solid var(--gold);outline-offset:3px;}
+/* dica bem evidente */
+#btnHint{background:linear-gradient(180deg,#ffe066,#ffc800);color:var(--ink);width:auto;min-width:44px;padding:0 9px;}
+#btnHint:hover{background:linear-gradient(180deg,#fff08a,#ffd633);}
+.hbtn .badge{background:#ff2d55 !important;color:#fff;border:2px solid var(--ink);min-width:19px;height:19px;
+  top:-8px;right:-8px;font-size:11px;border-radius:50%;padding:0 3px;}
+.hbtn .badge.zero{background:#64748b !important;}
+
+/* ── PISTA ATIVA ── */
+#activeClueBanner{
+  background:linear-gradient(155deg,var(--navy),#0a1236);
+  border:3px solid var(--blue);border-radius:18px;box-shadow:0 5px 0 #1b3a8a;padding:10px 16px;
+}
+#activeClueBanner .clue-dir{border:2px solid var(--ink);box-shadow:0 2px 0 var(--ink);font-size:clamp(11px,2.8vw,13px);padding:2px 11px;}
+#activeClueBanner .clue-dir.across{background:var(--blue);color:var(--ink);}
+#activeClueBanner .clue-dir.down{background:#c4b5fd;color:var(--ink);}
+#activeClueBanner .clue-main{font-size:clamp(14px,3.6vw,18px);}
+#activeClueBanner .wp-cell{border:2px solid var(--ink);box-shadow:0 2px 0 var(--ink);border-radius:6px;}
+#activeClueBanner .wp-cell.filled{background:#4ade80;color:var(--ink);border-color:var(--ink);}
+#activeClueBanner .wp-cell.empty{background:var(--navy2);color:rgba(255,255,255,.4);border-color:var(--ink);}
+#activeClueBanner .wp-cell.current{background:var(--gold);color:var(--ink);border-color:var(--ink);}
+
+/* ── GRELHA DE PALAVRAS CRUZADAS ── */
+#gridWrap{padding:14px;}
+#cwGrid{gap:4px;padding:2px;}
+.cw-cell{border-radius:6px;}
+.cw-cell.black{background:rgba(1,6,23,.55);border-radius:5px;}
+.cw-cell.white{
+  background:#fff;border:2.5px solid var(--ink);box-shadow:0 2px 0 var(--ink);
+  transition:transform .12s,background .12s;
+}
+.cw-cell.white:hover{background:#fffbea;border-color:var(--ink);}
+.cw-cell.white.word-active{background:#dbeafe;border-color:var(--ink);}
+.cw-cell.white.correct{background:#b8f5d9;border-color:var(--ink);}
+/* a letra onde está o cursor */
+.cw-cell.white:focus-within{background:var(--gold);border-color:var(--ink);box-shadow:0 2px 0 var(--ink),inset 0 0 0 3px #7c3aed;z-index:2;}
+.cw-cell.white.correct:focus-within{background:#7be495;}
+.cw-cell.white.cell-pop{animation:cellPop .55s cubic-bezier(.34,1.56,.64,1) both;z-index:3;}
+@keyframes cellPop{0%{transform:scale(1);}35%{transform:scale(1.3) rotate(-5deg);filter:brightness(1.12);}70%{transform:scale(.93) rotate(2deg);}100%{transform:scale(1) rotate(0);}}
+.cw-cell.white.wrong-flash{animation:wrongShake .45s ease;}
+@keyframes wrongShake{
+  0%,100%{transform:translateX(0);}
+  20%{transform:translateX(-3px);background:#fecaca;}
+  40%{transform:translateX(3px);background:#ffb3b3;}
+  60%{transform:translateX(-2px);background:#fecaca;}
+  80%{transform:translateX(2px);}
+}
+.cw-cell input{color:var(--ink);font-weight:400;}
+.cw-num{color:var(--navy2);font-size:10px;font-weight:400;}
+
+/* ── PISTAS ── */
+#cluesPanel{scrollbar-color:var(--gold) transparent;}
+#cluesPanel::-webkit-scrollbar{width:6px;}
+#cluesPanel::-webkit-scrollbar-thumb{background:var(--gold);border-radius:10px;}
+.clue-section h3{text-shadow:0 2px 0 var(--ink);font-size:clamp(15px,3.8vw,18px);}
+.clue-item{border:2px solid transparent;border-radius:10px;padding:6px 9px;margin-bottom:4px;transition:background .12s,transform .08s;}
+.clue-item:hover{background:rgba(77,141,255,.22);border-color:rgba(77,141,255,.5);}
+.clue-item.active{background:var(--gold);border-color:var(--ink);box-shadow:0 2px 0 var(--ink);}
+.clue-item.active .clue-num,.clue-item.active .clue-txt{color:var(--ink);}
+.clue-txt{font-weight:800;color:rgba(255,255,255,.85);}
+.clue-num{color:var(--gold);text-shadow:0 1px 0 var(--ink);}
+.clue-item.active .clue-num{text-shadow:none;}
+.clue-item.correct{opacity:1;background:rgba(74,222,128,.16);border-color:rgba(74,222,128,.55);}
+.clue-txt.correct{color:#86efac;text-decoration:line-through;text-decoration-thickness:2px;}
+.clue-item.correct::after{content:'✓';color:#4ade80;font-family:'Fredoka One','Fredoka',cursive;margin-left:auto;padding-left:6px;}
+
+/* ── MODAIS (início e fim) ── */
+.mbg{background:rgba(2,6,23,.88);backdrop-filter:blur(8px);}
+.movl{padding:12px;}
+.mcard{
+  width:min(560px,96vw);max-height:calc(100vh - 24px);max-height:calc(100dvh - 24px);overflow-y:auto;
+  padding:clamp(16px,3vw,26px) clamp(14px,3vw,24px) clamp(14px,2.5vw,22px);
+  animation:cardPop .25s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes cardPop{from{transform:scale(.88) rotate(-1.5deg);opacity:0;}to{transform:scale(1) rotate(0);opacity:1;}}
+.mcard h2{
+  font-size:clamp(1.35rem,5vw,1.9rem);line-height:1.2;text-shadow:0 3px 0 var(--ink);
+  border-bottom:3px dotted rgba(255,214,0,.35);padding-bottom:10px;margin-bottom:12px;
+}
+.h2l{display:block;}
+.mcard p{color:var(--soft);font-weight:800;font-size:clamp(.8rem,2.2vw,.95rem);line-height:1.5;margin-bottom:12px;}
+.mcard p.tiny{font-size:11px;margin:10px 0 0;opacity:.85;}
+
+.name-row{margin:0 0 12px;}
+.name-row label{text-shadow:0 2px 0 var(--ink);}
+.name-row input{
+  background:#0a1236;color:#fff;border:3px solid rgba(255,214,0,.85);border-radius:12px;
+  box-shadow:0 3px 0 var(--ink);max-width:none;
+}
+.name-row input:focus{box-shadow:0 3px 0 var(--ink);outline:3px solid var(--blue);outline-offset:2px;}
+.name-row input::placeholder{color:rgba(255,214,0,.5);}
+
+.diff-row{gap:8px;margin-bottom:6px;}
+.dbtn{
+  background:var(--navy2);color:#fff;border:2.5px solid var(--ink);border-radius:20px;
+  box-shadow:0 3px 0 var(--ink);padding:.34rem .9rem;font-size:clamp(.82rem,2.6vw,.95rem);line-height:1.3;
+  transition:transform .08s,box-shadow .08s,background .12s;
+}
+.dbtn:hover{background:#2540a8;}
+.dbtn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--ink);}
+.dbtn.on{color:var(--ink);}
+#d1.on{background:#4ade80;}
+#d2.on{background:var(--gold);}
+#d3.on{background:#ff6b81;}
+.lvl-desc{color:var(--soft);font-weight:800;font-size:12px;text-align:center;margin:2px 0 10px;min-height:16px;}
+
+.bplay{
+  background:linear-gradient(180deg,#ffe066,#ffc800);color:var(--ink);
+  border:3px solid var(--ink);border-radius:14px;box-shadow:0 4px 0 var(--ink);
+  padding:10px 26px;margin-top:6px;font-size:clamp(1rem,3.6vw,1.2rem);
+  transition:transform .08s,box-shadow .08s,background .12s;
+}
+.bplay:hover{background:linear-gradient(180deg,#fff08a,#ffd633);transform:translateY(-2px);box-shadow:0 6px 0 var(--ink);}
+.bplay:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink);}
+.bsec{
+  background:var(--navy2);color:#fff;border:3px solid var(--ink);border-radius:14px;box-shadow:0 4px 0 var(--ink);
+  padding:10px 22px;margin-top:6px;font-size:clamp(1rem,3.6vw,1.2rem);
+  transition:transform .08s,box-shadow .08s,background .12s;
+}
+.bsec:hover{background:#2540a8;transform:translateY(-2px);box-shadow:0 6px 0 var(--ink);}
+.bsec:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink);}
+.row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px;}
+.row .bplay,.row .bsec{margin-top:0;}
+
+/* ecrã final */
+.win-trophy{display:block;font-size:clamp(44px,12vw,64px);line-height:1;margin:0 0 4px;
+  filter:drop-shadow(0 4px 0 rgba(0,0,0,.5));animation:trophyBob 2.6s ease-in-out infinite;}
+@keyframes trophyBob{0%,100%{transform:translateY(0) rotate(0);}50%{transform:translateY(-4px) rotate(-4deg);}}
+#endTitle{border-bottom:0;padding-bottom:0;margin-bottom:4px;}
+.stars-row{margin:4px 0 8px;}
+.win-stats{display:flex;flex-direction:column;gap:8px;margin:4px 0 4px;}
+.win-stat{
+  background:#0a1236;color:#fff;border:2px solid rgba(255,214,0,.5);border-radius:12px;
+  box-shadow:0 3px 0 var(--ink);padding:7px 10px;font-size:clamp(.9rem,2.8vw,1.05rem);
+}
+.win-stat strong{color:var(--gold);font-weight:400;}
+
+/* mascote e etiquetas */
+#fixed-vb-robot,#fixed-vb-robot:hover{filter:drop-shadow(0 4px 0 rgba(0,0,0,.45)) drop-shadow(0 0 12px #7dd3fc);}
+#fixed-robot-name{
+  color:var(--ink);text-shadow:none;background:var(--gold);border:2px solid var(--ink);border-radius:999px;
+  box-shadow:0 2px 0 var(--ink);padding:0 9px;font-size:clamp(.65rem,1.5vw,.8rem);
+}
+#prof-tag{
+  color:#fff;background:var(--navy);border:2px solid var(--gold);border-radius:999px;box-shadow:0 2px 0 var(--ink);
+  padding:1px 11px;text-shadow:none;font-weight:800;
+}
+
+/* ── ECRÃS PEQUENOS ── */
+@media(max-width:699px){
+  header{flex-wrap:wrap;justify-content:center;}
+  .htitle{width:100%;text-align:center;}
+  .hinfo{width:100%;justify-content:space-between;flex-wrap:nowrap;gap:5px;}
+  .hbtn{width:34px;height:34px;}
+  #score,#timer{padding:3px 8px;}
+  #btnHint{min-width:40px;padding:0 6px;}
+}
+@media(max-height:520px) and (orientation:landscape){
+  .h2l{display:inline;}
+  .mcard h2{margin-bottom:8px;padding-bottom:6px;}
+  .win-trophy{display:none;}
+  .movl{padding:8px 8px 40px;}
+  .mcard{max-height:calc(100vh - 48px);max-height:calc(100dvh - 48px);padding:12px 16px;}
+  .mcard p{margin-bottom:6px;}
+  .stars-row{margin:0 0 2px;}.star{font-size:24px;}
+  .win-stats{flex-direction:row;flex-wrap:wrap;justify-content:center;gap:6px;margin:2px 0;}
+  .win-stat{flex:1 1 auto;padding:3px 8px;font-size:.82rem;}
+  .row{margin-top:8px;}
+  .bplay,.bsec{padding:6px 16px;font-size:1rem;}
+  #startMod .mcard>p:not(.lvl-desc):not(.tiny){display:none;}
+  #startMod .tiny{display:none;}
+}
+@media(prefers-reduced-motion:reduce){.mcard,.win-trophy,.cw-cell.white.cell-pop{animation:none;}}
 </style>
 </head>
 <body>
@@ -311,18 +522,20 @@ header{width:100%;max-width:min(1600px,98vw);display:flex;align-items:center;jus
 <div class="movl" id="startMod">
   <div class="mbg"></div>
   <div class="mcard">
-    <h2>VanBerto's — Palavras Cruzadas</h2>
-    <p>Preenche as palavras cruzadas<br>com os países da União Europeia!<br>Usa as pistas para te ajudar.</p>
+    <h2>✏️ Palavras Cruzadas<span class="h2l"> União Europeia</span></h2>
+    <p>Preenche as palavras cruzadas com os países da União Europeia! Usa as pistas para te ajudar.</p>
     <div class="name-row">
       <label for="playerName">O teu nome:</label>
       <input type="text" id="playerName" maxlength="22" placeholder="Escreve o teu nome…" autocomplete="off" lang="pt-PT" spellcheck="true" inputmode="text">
     </div>
     <div class="diff-row">
-      <button class="dbtn on" id="d1" onclick="setDiff(1)">😊 Fácil<br><small>8 palavras</small></button>
-      <button class="dbtn" id="d2" onclick="setDiff(2)">⚡ Normal<br><small>13 palavras</small></button>
-      <button class="dbtn" id="d3" onclick="setDiff(3)">🔥 Difícil<br><small>18 palavras</small></button>
+      <button class="dbtn on" id="d1" onclick="setDiff(1)">⭐ Fácil</button>
+      <button class="dbtn" id="d2" onclick="setDiff(2)">⭐⭐ Normal</button>
+      <button class="dbtn" id="d3" onclick="setDiff(3)">⭐⭐⭐ Difícil</button>
     </div>
-    <button class="bplay" onclick="startGame()">✏️ Jogar!</button>
+    <p class="lvl-desc" id="lvlDesc"></p>
+    <button class="bplay" onclick="startGame()">▶ Jogar!</button>
+    <p class="tiny">Clica numa pista · escreve letra a letra · as palavras cruzam-se!</p>
   </div>
 </div>
 
@@ -330,16 +543,24 @@ header{width:100%;max-width:min(1600px,98vw);display:flex;align-items:center;jus
 <div class="movl" id="endMod" style="display:none;">
   <div class="mbg"></div>
   <div class="mcard">
+    <span class="win-trophy" aria-hidden="true">🇪🇺</span>
     <h2 id="endTitle">Parabéns!</h2>
     <div class="stars-row" id="starsRow">
       <span class="star" id="star1">⭐</span>
       <span class="star" id="star2">⭐</span>
       <span class="star" id="star3">⭐</span>
     </div>
-    <div class="mscore" id="endTime">00:00</div>
     <p id="endTxt"></p>
-    <button class="bplay" onclick="startGame()">🔄 Jogar outra vez</button>
-    <br><button class="bsec" onclick="showStart()">🏠 Início</button>
+    <div class="win-stats">
+      <div class="win-stat">⭐ Palavras completas: <strong id="endWords">0 / 0</strong></div>
+      <div class="win-stat">🎮 Nível: <strong id="endLevel">—</strong></div>
+      <div class="win-stat">💡 Dicas usadas: <strong id="endHints">0</strong></div>
+      <div class="win-stat">⏱️ Tempo: <strong id="endTime">00:00</strong></div>
+    </div>
+    <div class="row">
+      <button class="bplay" onclick="startGame()">🔄 Jogar de novo</button>
+      <button class="bsec" onclick="showStart()">🏠 Início</button>
+    </div>
   </div>
 </div>
 
@@ -438,7 +659,9 @@ let timerInterval=null, elapsed=0;
 let hintsUsed=0, maxHints=3;
 let playerName='Herói da UE';
 
-function setDiff(d){diff=d;[1,2,3].forEach(i=>document.getElementById('d'+i).classList.toggle('on',i===d));}
+const DIFF_INFO={1:['Fácil','8 palavras · 3 dicas'],2:['Normal','13 palavras · 4 dicas'],3:['Difícil','18 palavras · 5 dicas']};
+function setDiff(d){diff=d;[1,2,3].forEach(i=>document.getElementById('d'+i).classList.toggle('on',i===d));
+  document.getElementById('lvlDesc').textContent=DIFF_INFO[d][1];}
 function showStart(){
   stopTimer();
   document.getElementById('startMod').style.display='flex';
@@ -1006,7 +1229,7 @@ function updateHintBadge(){
   const remaining=maxHints-hintsUsed;
   const badge=document.getElementById('hintBadge');
   badge.textContent=remaining;
-  badge.style.background=remaining>0?'#1565ff':'#64748b';
+  badge.classList.toggle('zero',remaining<=0);
 }
 
 function endGame(){
@@ -1040,9 +1263,10 @@ function endGame(){
     'Incrível! 🌟<br>Resultado<br>perfeito!'];
   
   document.getElementById('endTitle').textContent=titles[stars];
-  const hintNote=hintsUsed>0?' ('+hintsUsed+' dica'+(hintsUsed>1?'s':'')+' usada'+(hintsUsed>1?'s':'')+')':'';
-  document.getElementById('endTxt').textContent=
-    playerName+', completaste '+totalWords+' palavras em '+timeStr+'!'+hintNote;
+  document.getElementById('endTxt').textContent='Parabéns, '+playerName+'! '+msgs[stars];
+  document.getElementById('endWords').textContent=solvedEntries.length+' / '+totalWords;
+  document.getElementById('endLevel').textContent=DIFF_INFO[diff][0];
+  document.getElementById('endHints').textContent=hintsUsed;
   vbSetMsg('Parabéns, '+playerName+'! 🌟');
   document.getElementById('endMod').style.display='flex';
   
@@ -1201,6 +1425,7 @@ function launchConfetti(){
   requestAnimationFrame(draw);
 }
 
+setDiff(diff);
 showStart();
 </script>
 <script>
